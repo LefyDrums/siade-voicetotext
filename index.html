@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SIADE · Actuación Verbal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#07111f;color:#e2eaf5}
+
+/* ── Screens ─────────────────────────────── */
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;
+     opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;transform:translateX(24px)}
+.scr.active{opacity:1;pointer-events:all;transform:none}
+
+/* ── Header ──────────────────────────────── */
+.hdr{background:#0b1a30;padding:13px 14px 12px;display:flex;align-items:center;
+     gap:10px;border-bottom:1px solid #15304d;flex-shrink:0;min-height:52px}
+.hdr-back{background:none;border:none;color:#4a8fff;font-size:20px;cursor:pointer;
+          padding:0 6px;min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center}
+.hdr-title{font-size:15px;font-weight:600;color:#e2eaf5;flex:1}
+.hdr-mod{background:#0f2540;border-radius:7px;padding:3px 9px;font-size:10px;
+         color:#4a8fff;font-weight:600;letter-spacing:.4px;flex-shrink:0}
+
+/* ── Selector screen ─────────────────────── */
+.sel-scroll{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.brand{text-align:center;padding:18px 0 10px}
+.brand-name{font-size:26px;font-weight:700;color:#4a8fff;letter-spacing:3px}
+.brand-sub{font-size:12px;color:#6a86aa;margin-top:3px}
+.brand-icon{font-size:38px;margin-bottom:6px}
+.sel-label{text-align:center;font-size:13px;color:#8aa4c0;margin-bottom:4px}
+.mod-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mod-btn{background:#0b1a30;border:1px solid #15304d;border-radius:14px;
+         padding:20px 12px;display:flex;flex-direction:column;align-items:center;
+         gap:10px;cursor:pointer;transition:all .15s;min-height:100px;text-align:center}
+.mod-btn:active{background:#112240;border-color:#4a8fff;transform:scale(.96)}
+.mod-btn .icon{font-size:28px}
+.mod-btn .label{font-size:12px;font-weight:500;color:#c0d0e8;line-height:1.4}
+.notice{background:#0b1a30;border:1px solid #15304d;border-radius:10px;padding:11px 13px;
+        font-size:11px;color:#4a6080;line-height:1.6}
+.notice strong{color:#6a86aa}
+
+/* ── Formulario ─────────────────────────── */
+.form-scroll{flex:1;overflow-y:auto;padding:12px 14px 110px;-webkit-overflow-scrolling:touch}
+.dictado-libre-btn{
+  width:100%;background:#0f2540;border:1px dashed #4a8fff55;border-radius:11px;
+  padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;
+  cursor:pointer;transition:all .15s
+}
+.dictado-libre-btn:active{background:#153258;border-color:#4a8fff}
+.dl-icon{font-size:22px}
+.dl-text{text-align:left}
+.dl-title{font-size:13px;font-weight:500;color:#7aa3d0}
+.dl-sub{font-size:11px;color:#4a6080;margin-top:1px}
+.dl-listening{border-color:#ff9f0a;background:#1a1400}
+.dl-listening .dl-title{color:#ff9f0a}
+
+.grp{margin-bottom:18px}
+.grp-title{font-size:10px;font-weight:700;color:#4a8fff;text-transform:uppercase;
+           letter-spacing:.9px;margin-bottom:10px;padding-bottom:6px;
+           border-bottom:1px solid #15304d}
+.fld{margin-bottom:11px}
+.fld label{display:block;font-size:11.5px;color:#7a98b8;margin-bottom:5px;font-weight:500}
+.fld label .req{color:#ff5555}
+.fld-row{display:flex;gap:7px;align-items:stretch}
+.fld input,.fld textarea,.fld select{
+  flex:1;background:#0b1a30;border:1.5px solid #15304d;border-radius:9px;
+  padding:10px 12px;font-size:15px;color:#e2eaf5;outline:none;
+  transition:border-color .15s;-webkit-appearance:none;min-height:44px
+}
+.fld input::placeholder,.fld textarea::placeholder{color:#2a4060;font-size:12.5px}
+.fld input:focus,.fld textarea:focus{border-color:#4a8fff55}
+.fld input.vp{border-color:#ff9f0a;background:#130f00}
+.fld textarea{min-height:72px;resize:none;line-height:1.55;font-size:14px}
+.fld select option{background:#0b1a30;color:#e2eaf5}
+.mic{background:#112240;border:1.5px solid #15304d;border-radius:9px;
+     width:46px;min-height:44px;display:flex;align-items:center;justify-content:center;
+     font-size:19px;cursor:pointer;flex-shrink:0;transition:all .15s}
+.mic:active,.mic:focus{background:#1a3060;outline:none}
+.mic.on{background:#1a0a00;border-color:#ff3b30;animation:pulse .9s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hint{font-size:10.5px;color:#ff9f0a;margin-top:4px;display:none}
+.hint.show{display:block}
+
+/* ── Panel de confirmación por campo (3er paso) ─── */
+.confirm-box{display:none;background:#0f2540;border:1.5px solid #4a8fff;
+             border-radius:9px;padding:10px 12px;margin-top:7px}
+.confirm-box.show{display:block}
+.confirm-label{font-size:10px;color:#7aa3d0;margin-bottom:5px;font-weight:700;
+               text-transform:uppercase;letter-spacing:.5px}
+.confirm-text{font-size:14.5px;color:#e2eaf5;margin-bottom:10px;line-height:1.4;
+              word-break:break-word;font-weight:500}
+.confirm-text.warn-text{color:#ff9f0a}
+.confirm-actions{display:flex;gap:8px}
+.btn-ok{flex:1;background:#0f3d24;border:1.5px solid #30c87a;color:#30c87a;
+        border-radius:8px;padding:10px;font-size:13px;font-weight:600;
+        cursor:pointer;min-height:42px}
+.btn-ok:active{background:#155032}
+.btn-retry{flex:1;background:#1a1400;border:1.5px solid #ff9f0a;color:#ff9f0a;
+           border-radius:8px;padding:10px;font-size:13px;font-weight:600;
+           cursor:pointer;min-height:42px}
+.btn-retry:active{background:#2a2000}
+.fld input.confirmado,.fld textarea.confirmado{border-color:#30c87a66}
+
+/* ── Panel de confirmación dictado libre ────────── */
+.dl-confirm-box{display:none;background:#0f2540;border:1.5px solid #4a8fff;
+                border-radius:11px;padding:12px;margin-bottom:14px;margin-top:-6px}
+.dl-confirm-box.show{display:block}
+.hint.show{display:block}
+
+/* Toggles */
+.tog-row{display:flex;gap:7px;margin-top:4px}
+.tog{flex:1;background:#0b1a30;border:1.5px solid #15304d;border-radius:9px;
+     padding:10px 8px;text-align:center;font-size:13px;font-weight:500;
+     color:#6a86aa;cursor:pointer;transition:all .15s;min-height:42px;
+     display:flex;align-items:center;justify-content:center}
+.tog.sel{background:#0f2a50;border-color:#4a8fff;color:#e2eaf5}
+
+/* Footer */
+.form-footer{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,#07111f 28%);
+  padding:22px 14px 14px
+}
+.btn-pri{width:100%;background:#1a4090;border:none;border-radius:11px;
+         padding:14px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;
+         transition:background .15s;min-height:48px}
+.btn-pri:active{background:#2255b0}
+.btn-sec{width:100%;background:transparent;border:1.5px solid #15304d;border-radius:11px;
+         padding:12px;font-size:14px;color:#6a86aa;cursor:pointer;margin-top:8px;min-height:46px}
+
+/* ── Revisión ────────────────────────────── */
+.rev-scroll{flex:1;overflow-y:auto;padding:12px 14px 110px;-webkit-overflow-scrolling:touch}
+.rev-grp{margin-bottom:16px}
+.rev-grp-title{font-size:10px;font-weight:700;color:#4a8fff;text-transform:uppercase;
+               letter-spacing:.9px;margin-bottom:8px}
+.rev-item{display:flex;justify-content:space-between;align-items:start;
+          padding:8px 0;border-bottom:1px solid #0d1e30;gap:12px}
+.rev-item:last-child{border-bottom:none}
+.rev-key{font-size:11.5px;color:#6a86aa;flex-shrink:0;max-width:130px;line-height:1.4}
+.rev-val{font-size:13px;color:#e2eaf5;text-align:right;word-break:break-word;line-height:1.4}
+.rev-val.pending{color:#ff9f0a}
+.rev-val.empty{color:#2a4060;font-style:italic;font-size:12px}
+.rev-warn{background:#130f00;border:1px solid #ff9f0a55;border-radius:8px;
+          padding:10px 12px;margin-bottom:10px;font-size:12px;color:#ff9f0a;line-height:1.5}
+.rev-err{background:#130000;border:1px solid #ff555555;border-radius:8px;
+         padding:10px 12px;margin-bottom:10px;font-size:12px;color:#ff6666;line-height:1.5}
+
+/* ── Éxito ────────────────────────────────── */
+.ok-content{flex:1;display:flex;flex-direction:column;align-items:center;
+            justify-content:center;padding:20px;gap:14px;overflow-y:auto}
+.ok-icon{font-size:58px;margin-top:-20px}
+.ok-title{font-size:20px;font-weight:700;color:#4a8fff}
+.ok-sub{font-size:13px;color:#6a86aa;text-align:center;line-height:1.6}
+.json-out{background:#0b1a30;border:1px solid #15304d;border-radius:10px;padding:12px;
+          width:100%;max-width:480px;font-family:monospace;font-size:10px;color:#5a9fff;
+          text-align:left;white-space:pre-wrap;word-break:break-all;
+          max-height:220px;overflow-y:auto}
+.copy-btn{background:#0f2540;border:1px solid #4a8fff55;border-radius:9px;
+          padding:10px 20px;font-size:13px;color:#4a8fff;cursor:pointer;
+          width:100%;max-width:280px;transition:all .15s}
+.copy-btn:active{background:#153260}
+
+/* ── Status bar ──────────────────────────── */
+#sbar{position:fixed;bottom:0;left:0;right:0;background:#0b1a30;
+      border-top:1px solid #15304d;padding:7px 14px;font-size:11px;
+      color:#4a6080;display:none;align-items:center;gap:8px;z-index:200}
+#sbar.show{display:flex}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sdot.listen{background:#4a8fff;animation:blink .9s infinite}
+.sdot.ok{background:#30c87a}
+.sdot.err{background:#ff5555}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     PANTALLA 0: SELECTOR DE MÓDULO
+═══════════════════════════════════════════ -->
+<div id="sc0" class="scr active">
+  <div class="hdr" style="justify-content:center;border-bottom:1px solid #15304d">
+    <div style="text-align:center">
+      <div style="font-size:12px;font-weight:700;color:#4a8fff;letter-spacing:3px">SIADE</div>
+      <div style="font-size:10px;color:#4a6080;margin-top:1px">Sistema Integral de Análisis de Delitos</div>
+    </div>
+  </div>
+  <div class="sel-scroll">
+    <div class="brand">
+      <div class="brand-icon">🎙️</div>
+      <div class="brand-name">ACTUACIÓN VERBAL</div>
+      <div class="brand-sub">Prototipo de ingreso por voz · v0.1</div>
+    </div>
+    <div class="sel-label">Seleccioná el tipo de actuación</div>
+    <div class="mod-grid">
+      <button class="mod-btn" onclick="seleccionarModulo('delito')">
+        <span class="icon">🚨</span>
+        <span class="label">Registro<br>de Delito</span>
+      </button>
+      <button class="mod-btn" onclick="seleccionarModulo('control')">
+        <span class="icon">🛑</span>
+        <span class="label">Control<br>Operacional</span>
+      </button>
+      <button class="mod-btn" onclick="seleccionarModulo('drogas')">
+        <span class="icon">⚖️</span>
+        <span class="label">Drogas y<br>Leyes Especiales</span>
+      </button>
+      <button class="mod-btn" onclick="seleccionarModulo('allanamiento')">
+        <span class="icon">🏠</span>
+        <span class="label">Allanamiento /<br>Pedido Captura</span>
+      </button>
+      <button class="mod-btn" onclick="seleccionarModulo('personas')" style="grid-column:span 2">
+        <span class="icon">👤</span>
+        <span class="label">Registro de Personas — Padrón</span>
+      </button>
+    </div>
+    <div id="protoWarn"></div>
+    <div class="notice">
+      ⚠️ <strong>Modo prototipo.</strong> No se guarda ningún dato. Permite testear el flujo de voz con los campos reales del sistema SIADE.<br><br>
+      📱 Requiere <strong>Chrome o Edge</strong> (mobile o desktop) para reconocimiento de voz.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANTALLA 1: FORMULARIO
+═══════════════════════════════════════════ -->
+<div id="sc1" class="scr">
+  <div class="hdr">
+    <button class="hdr-back" onclick="atras()">←</button>
+    <span class="hdr-title" id="frmTitulo"></span>
+    <span class="hdr-mod" id="frmMod"></span>
+  </div>
+  <div class="form-scroll" id="frmContent"></div>
+  <div class="form-footer">
+    <button class="btn-pri" onclick="irReview()">Revisar actuación →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANTALLA 2: REVISIÓN
+═══════════════════════════════════════════ -->
+<div id="sc2" class="scr">
+  <div class="hdr">
+    <button class="hdr-back" onclick="atras()">←</button>
+    <span class="hdr-title">Revisar antes de guardar</span>
+  </div>
+  <div class="rev-scroll" id="revContent"></div>
+  <div class="form-footer">
+    <button class="btn-pri" onclick="irExito()">✅ Confirmar — datos correctos</button>
+    <button class="btn-sec" onclick="atras()">Volver a editar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANTALLA 3: ÉXITO
+═══════════════════════════════════════════ -->
+<div id="sc3" class="scr">
+  <div class="hdr" style="justify-content:center">
+    <span class="hdr-title" style="text-align:center">Actuación Verbal · Prototipo</span>
+  </div>
+  <div class="ok-content">
+    <div class="ok-icon">✅</div>
+    <div class="ok-title">Prototipo funcional</div>
+    <div class="ok-sub">
+      En el sistema real, estos datos se enviarían al endpoint correspondiente de SIADE y se guardarían en MongoDB.<br><br>
+      Revisá el JSON para verificar el mapeo de campos:
+    </div>
+    <div class="json-out" id="jsonOut"></div>
+    <button class="copy-btn" onclick="copiarJson()">📋 Copiar JSON</button>
+    <button class="btn-pri" style="max-width:280px" onclick="reiniciar()">Nueva actuación</button>
+  </div>
+</div>
+
+<!-- Status bar -->
+<div id="sbar"><div class="sdot" id="sdot"></div><span id="stxt">Listo</span></div>
+
+<script>
+// ════════════════════════════════════════════════
+// DEFINICIÓN DE MÓDULOS — CAMPOS REALES DE SIADE
+// ════════════════════════════════════════════════
+
+const MODS = {
+
+  delito: {
+    titulo: 'Registro de Delito',
+    mod: 'DELITO',
+    endpoint: '/guardar_registro',
+    grupos: [
+      { titulo: '📅 Fecha y Hora del Hecho', campos: [
+        { id:'fecha_del_hecho',   label:'Fecha del hecho',      req:true,  tipo:'fecha',   ph:'"el quince de junio" · "ayer" · "hoy"' },
+        { id:'hora_del_hecho',    label:'Hora del hecho',       req:true,  tipo:'hora',    ph:'"las tres de la tarde" · "21:30"' },
+        { id:'patron_horario',    label:'Patrón horario',       req:false, tipo:'texto',   ph:'Se calcula automáticamente', readonly:true },
+        { id:'dia_semana',        label:'Día de la semana',     req:false, tipo:'texto',   ph:'Se calcula al ingresar la fecha', readonly:true },
+      ]},
+      { titulo: '📍 Ubicación', campos: [
+        { id:'ciudad',            label:'Ciudad',               req:true,  tipo:'ciudad',  ph:'"Comodoro" · "Rada Tilly" · "Madryn"' },
+        { id:'barrio',            label:'Barrio',               req:false, tipo:'texto',   ph:'"Centenario" · "Don Bosco"' },
+        { id:'lugar_del_hecho',   label:'Dirección / Lugar',    req:true,  tipo:'texto',   ph:'"San Martín cuatrocientos"' },
+        { id:'tipo_de_lugar',     label:'Tipo de lugar',        req:false, tipo:'texto',   ph:'"vía pública" · "comercio" · "domicilio"' },
+      ]},
+      { titulo: '🚨 Tipo de Delito', campos: [
+        { id:'delito',            label:'Delito',               req:true,  tipo:'texto',   ph:'"robo a mano armada" · "hurto"' },
+        { id:'modus_operandi',    label:'Modus operandi',       req:false, tipo:'texto',   ph:'"motochorro" · "escruche" · "estafa"' },
+        { id:'movil_del_crimen',  label:'Móvil del crimen',     req:false, tipo:'texto',   ph:'"robo" · "conflicto intrafamiliar"' },
+        { id:'valuacion',         label:'Valuación / Monto ($)', req:false, tipo:'numero',  ph:'"cincuenta mil" · "200000"' },
+        { id:'agravante',         label:'Agravante',            req:false, tipo:'toggle',  opts:['SÍ','NO'] },
+        { id:'in_fraganti',       label:'In fraganti',          req:false, tipo:'toggle',  opts:['SÍ','NO'] },
+        { id:'rubros',            label:'Rubros / Bienes',      req:false, tipo:'texto',   ph:'"celular Samsung" · "dinero en efectivo"' },
+      ]},
+      { titulo: '👤 Denunciante / Víctima', campos: [
+        { id:'denunciante_apellido', label:'Apellido',          req:false, tipo:'texto',   ph:'"García"' },
+        { id:'denunciante_nombre',   label:'Nombre',            req:false, tipo:'texto',   ph:'"Juan Carlos"' },
+        { id:'denunciante_documento',label:'DNI',               req:false, tipo:'dni',     ph:'"treinta y dos millones..." · "32100500"' },
+        { id:'denunciante_telefono', label:'Teléfono',          req:false, tipo:'texto',   ph:'"dos noventa y siete..."' },
+        { id:'denunciante_domicilio',label:'Domicilio',         req:false, tipo:'texto',   ph:'"Rivadavia cuatrocientos"' },
+      ]},
+      { titulo: '📝 Observaciones', campos: [
+        { id:'nro_informe_novedades',label:'Nro. informe novedades', req:false, tipo:'texto', ph:'"cien barra veinte" · "100/26"' },
+        { id:'observaciones',     label:'Observaciones libres', req:false, tipo:'textarea', ph:'Dicte cualquier detalle adicional del hecho...' },
+      ]},
+    ]
+  },
+
+  control: {
+    titulo: 'Control Operacional',
+    mod: 'CONTROL',
+    endpoint: '/api/controles/operativo',
+    grupos: [
+      { titulo: '🗂️ Identificación del Operativo', campos: [
+        { id:'tipo_control',      label:'Tipo de control',      req:true,  tipo:'texto',   ph:'"alcoholemia" · "tránsito" · "saturación de área"' },
+        { id:'subtipo_control',   label:'Subtipo',              req:false, tipo:'texto',   ph:'"ruta" · "urbano" · "nocturno"' },
+        { id:'fecha_operativo',   label:'Fecha',                req:true,  tipo:'fecha',   ph:'"el lunes quince" · "hoy"' },
+        { id:'hora_inicio',       label:'Hora de inicio',       req:true,  tipo:'hora',    ph:'"las ocho de la mañana"' },
+        { id:'hora_fin',          label:'Hora de finalización', req:false, tipo:'hora',    ph:'"las doce"' },
+        { id:'nro_actuacion',     label:'Nro. de actuación',   req:false, tipo:'texto',   ph:'"cien barra veintiséis"' },
+        { id:'jefe_operativo',    label:'Jefe operativo',       req:false, tipo:'texto',   ph:'"Of. Insp. García Juan"' },
+        { id:'jerarquia_jefe',    label:'Jerarquía del jefe',   req:false, tipo:'texto',   ph:'"Sub Comisario"' },
+        { id:'cant_efectivos',    label:'Cantidad de efectivos', req:false, tipo:'numero', ph:'"diez" · "15"' },
+        { id:'cant_moviles',      label:'Cantidad de móviles',  req:false, tipo:'numero',  ph:'"tres"' },
+        { id:'ordenado_por',      label:'Ordenado por',         req:false, tipo:'texto',   ph:'"Jefatura Regional"' },
+      ]},
+      { titulo: '📍 Ubicación', campos: [
+        { id:'ciudad_ctrl',       label:'Ciudad',               req:true,  tipo:'ciudad',  ph:'"Comodoro" · "Trelew"' },
+        { id:'calle_ctrl',        label:'Calle',                req:false, tipo:'texto',   ph:'"Avenida Rivadavia"' },
+        { id:'numero_ctrl',       label:'Número',               req:false, tipo:'numero',  ph:'"cuatrocientos"' },
+        { id:'barrio_ctrl',       label:'Barrio',               req:false, tipo:'texto',   ph:'"Güemes" · "Don Bosco"' },
+        { id:'tipo_de_lugar',     label:'Tipo de lugar',        req:false, tipo:'texto',   ph:'"ruta" · "intersección" · "acceso"' },
+        { id:'descripcion_lugar', label:'Descripción del lugar',req:false, tipo:'texto',   ph:'"Acceso Sur km 3 · bajada de puente"' },
+      ]},
+      { titulo: '📊 Resultados del Operativo', campos: [
+        { id:'personas_controladas',  label:'Personas controladas',     req:false, tipo:'numero', ph:'"cincuenta" · "12"' },
+        { id:'aprehendidos',          label:'Aprehendidos',             req:false, tipo:'numero', ph:'"dos" · "0"' },
+        { id:'demorados',             label:'Demorados',                req:false, tipo:'numero', ph:'"uno"' },
+        { id:'vehiculos_controlados', label:'Vehículos controlados',    req:false, tipo:'numero', ph:'"veinte"' },
+        { id:'vehiculos_retenidos',   label:'Vehículos retenidos',      req:false, tipo:'numero', ph:'"uno"' },
+        { id:'tests_alcoholemia',     label:'Tests de alcoholemia',     req:false, tipo:'numero', ph:'"diez"' },
+        { id:'tests_positivos',       label:'Tests positivos',          req:false, tipo:'numero', ph:'"dos"' },
+        { id:'infracciones_transito', label:'Infracciones de tránsito', req:false, tipo:'numero', ph:'"cinco"' },
+        { id:'actas_labradas',        label:'Actas labradas',           req:false, tipo:'numero', ph:'"tres"' },
+        { id:'notas_aprehendidos',    label:'Notas sobre aprehendidos', req:false, tipo:'texto',  ph:'"Fuero federal · a disposición del juez"' },
+        { id:'oficial_firmante',      label:'Oficial firmante',         req:false, tipo:'texto',  ph:'"Of. Insp. Barrera Michael"' },
+      ]},
+      { titulo: '📝 Descripción y Observaciones', campos: [
+        { id:'descripcion_operativo', label:'Descripción del operativo', req:false, tipo:'textarea', ph:'Dicte el objetivo y descripción del operativo...' },
+        { id:'observaciones',         label:'Observaciones / Novedades', req:false, tipo:'textarea', ph:'Novedades, incidentes, resultados adicionales...' },
+      ]},
+    ]
+  },
+
+  drogas: {
+    titulo: 'Drogas y Leyes Especiales',
+    mod: 'DROGAS',
+    endpoint: '/api/drogas/intervencion',
+    grupos: [
+      { titulo: '📅 Fecha y Hora de la Intervención', campos: [
+        { id:'fecha_intervencion',label:'Fecha de intervención',req:true,  tipo:'fecha',   ph:'"el quince de junio" · "ayer"' },
+        { id:'hora_intervencion', label:'Hora de intervención',req:true,   tipo:'hora',    ph:'"las tres de la tarde"' },
+        { id:'hora_finalizacion', label:'Hora de finalización',req:false,  tipo:'hora',    ph:'"las cinco y media"' },
+        { id:'tipo_operativo',    label:'Tipo de operativo',   req:true,   tipo:'texto',   ph:'"allanamiento" · "flagrancia" · "prevención"' },
+        { id:'nro_actuacion',     label:'Nro. de actuación',  req:false,   tipo:'texto',   ph:'"cien barra veintiséis"' },
+      ]},
+      { titulo: '📍 Ubicación', campos: [
+        { id:'ciudad',            label:'Ciudad',               req:true,  tipo:'ciudad',  ph:'"Comodoro" · "Caleta Olivia"' },
+        { id:'lugar_del_hecho',   label:'Lugar del hecho',      req:false, tipo:'texto',   ph:'"calle San Martín doscientos"' },
+        { id:'barrio',            label:'Barrio',               req:false, tipo:'texto',   ph:'"Astra" · "San Cayetano"' },
+        { id:'tipo_de_lugar',     label:'Tipo de lugar',        req:false, tipo:'texto',   ph:'"domicilio particular" · "galpón"' },
+      ]},
+      { titulo: '⚖️ Datos Legales', campos: [
+        { id:'tipo_delito',       label:'Tipo de delito',       req:true,  tipo:'texto',   ph:'"tenencia con fines de comercialización"' },
+        { id:'articulo_ley',      label:'Artículo de ley',      req:false, tipo:'texto',   ph:'"artículo catorce bis" · "art 14 bis"' },
+        { id:'fuero',             label:'Fuero',                req:false, tipo:'texto',   ph:'"federal" · "provincial"' },
+        { id:'juzgado_fiscalia',  label:'Juzgado / Fiscalía',  req:false,  tipo:'texto',   ph:'"Fiscalía N° 2 Comodoro"' },
+        { id:'fiscal',            label:'Fiscal interviniente', req:false, tipo:'texto',   ph:'"Dr. García" · "Dra. López"' },
+        { id:'disposicion_fiscal',label:'Disposición fiscal',   req:false, tipo:'texto',   ph:'"imputado en libertad" · "detenido a disposición"' },
+        { id:'hay_organizacion',  label:'¿Organización criminal?', req:false, tipo:'toggle', opts:['SÍ','NO'] },
+        { id:'intervencion_can',  label:'¿Intervención canina?',   req:false, tipo:'toggle', opts:['SÍ','NO'] },
+      ]},
+      { titulo: '💰 Bienes Secuestrados', campos: [
+        { id:'dinero_secuestrado',label:'¿Dinero secuestrado?', req:false, tipo:'toggle',  opts:['SÍ','NO'] },
+        { id:'monto_dinero',      label:'Monto ($)',            req:false, tipo:'numero',   ph:'"diez mil" · "50000"' },
+        { id:'celulares_secuestrados', label:'Celulares secuestrados', req:false, tipo:'numero', ph:'"dos" · "uno"' },
+        { id:'otros_bienes',      label:'Otros bienes',         req:false, tipo:'texto',   ph:'"balanza de precisión" · "cortante"' },
+      ]},
+      { titulo: '📝 Circunstancias', campos: [
+        { id:'circunstancias',    label:'Circunstancias del hecho', req:false, tipo:'textarea', ph:'Dicte las circunstancias de la intervención...' },
+        { id:'observaciones',     label:'Observaciones',        req:false, tipo:'textarea', ph:'Datos adicionales del procedimiento...' },
+      ]},
+    ]
+  },
+
+  allanamiento: {
+    titulo: 'Allanamiento / Pedido Captura',
+    mod: 'ALLANAMIENTO',
+    endpoint: '/api/dpi/actuacion',
+    grupos: [
+      { titulo: '🗂️ Sección 1 — Tipo y Horario', campos: [
+        { id:'tipo_actuacion',      label:'Tipo de actuación',          req:true,  tipo:'texto',  ph:'"allanamiento" · "pedido de captura" · "operativo"' },
+        { id:'fecha_actuacion',     label:'Fecha',                      req:true,  tipo:'fecha',  ph:'"el quince de junio" · "hoy"' },
+        { id:'hora_inicio',         label:'Hora de inicio',             req:false, tipo:'hora',   ph:'"las nueve de la mañana"' },
+        { id:'hora_fin',            label:'Hora de finalización',       req:false, tipo:'hora',   ph:'"las doce"' },
+        { id:'patron_horario',      label:'Patrón horario',             req:false, tipo:'texto',  ph:'Se calcula automáticamente', readonly:true },
+      ]},
+      { titulo: '⚖️ Sección 2 — Identificación Judicial', campos: [
+        { id:'nro_actuacion',       label:'Nro. Actuación / NUF / SOL.JUR.', req:false, tipo:'texto', ph:'"NUF ocho mil ciento sesenta y cinco"' },
+        { id:'caratulado',          label:'Caratulado',                 req:true,  tipo:'texto',  ph:'"García Juan s/Robo Agravado"' },
+        { id:'nro_orden_judicial',  label:'Nro. Orden Judicial / IPS',  req:false, tipo:'texto',  ph:'"OF. JUD. mil quinientos sesenta y dos barra dos mil veintiséis"' },
+        { id:'juez_autorizante',    label:'Juez / Magistrado autorizante', req:false, tipo:'texto', ph:'"Dr. Rodríguez" · "Jueza López"' },
+        { id:'fiscal_interviniente',label:'Fiscal interviniente',       req:false, tipo:'texto',  ph:'"Dr. García" · "Dra. Fernández"' },
+      ]},
+      { titulo: '🏢 Sección 3 — Unidad Interviniente', campos: [
+        { id:'ciudad_principal',    label:'Ciudad principal',           req:false, tipo:'ciudad', ph:'"Comodoro Rivadavia" · "Esquel"' },
+        { id:'jefe_actuante',       label:'Jefe actuante / Personal a cargo', req:false, tipo:'texto', ph:'"Sub Comisario García Juan"' },
+        { id:'fuerza-input',        label:'Fuerzas / Divisiones colaborantes', req:false, tipo:'texto', ph:'"División Policía Científica" · "GEP"' },
+      ]},
+      { titulo: '📍 Sección 4 — Datos según tipo de actuación', campos: [
+        { id:'lugar_operativo',     label:'Lugar / Descripción del operativo', req:false, tipo:'texto', ph:'"Ruta 40 Km. 1580, Esquel"' },
+        { id:'lugar_deteccion',     label:'Lugar de la detención / aprehensión', req:false, tipo:'texto', ph:'"San Martín cuatrocientos, Comodoro"' },
+        { id:'tipo_captura',        label:'Ámbito de captura',          req:false, tipo:'texto',  ph:'"provincial" · "nacional" · "internacional"' },
+        { id:'provincia_origen',    label:'Provincia / País de origen', req:false, tipo:'texto',  ph:'"Córdoba" · "Buenos Aires" · "Chile"' },
+        { id:'resultado_general',   label:'Resultado general',          req:false, tipo:'texto',  ph:'"positivo" · "negativo" · "parcial"' },
+        { id:'personas_id_count',   label:'Personas identificadas',     req:false, tipo:'numero', ph:'"doce"' },
+        { id:'vehiculos_count',     label:'Vehículos controlados',      req:false, tipo:'numero', ph:'"cinco"' },
+        { id:'imputados_count',     label:'Imputados',                  req:false, tipo:'numero', ph:'"dos"' },
+      ]},
+      { titulo: '🎒 Sección 6 — Elementos secuestrados', campos: [
+        { id:'secuestro-input',     label:'Elementos secuestrados (dictar uno por uno)', req:false, tipo:'textarea', ph:'"Un teléfono celular marca Samsung color negro" · "Doscientos gramos de marihuana"' },
+      ]},
+      { titulo: '📝 Sección 7 — Observaciones', campos: [
+        { id:'observaciones',       label:'Observaciones / Narrativa adicional', req:false, tipo:'textarea', ph:'Relato adicional, circunstancias, novedades, intervención del MPF...' },
+      ]},
+    ]
+  }
+
+,
+
+  personas: {
+    titulo: 'Registro de Personas',
+    mod: 'PERSONAS',
+    endpoint: '/guardar_persona',
+    grupos: [
+      { titulo: '👤 Identificación', campos: [
+        { id:'nombre',            label:'Apellido y Nombre',    req:true,  tipo:'texto',   ph:'"García Juan Carlos"' },
+        { id:'alias',             label:'Alias / Apodo',        req:false, tipo:'texto',   ph:'"el Toro" · "Pelado"' },
+        { id:'sexo',              label:'Sexo',                 req:true,  tipo:'toggle',  opts:['MASCULINO','FEMENINO','NO BINARIO'] },
+        { id:'fecha_nacimiento',  label:'Fecha de nacimiento',  req:false, tipo:'fecha',   ph:'"el doce de marzo de mil novecientos noventa"' },
+        { id:'lugar_nacimiento',  label:'Lugar de nacimiento',  req:false, tipo:'ciudad',  ph:'"Comodoro Rivadavia" · "Buenos Aires"' },
+        { id:'nacionalidad',      label:'Nacionalidad',         req:false, tipo:'texto',   ph:'"argentina" · "chilena"' },
+      ]},
+      { titulo: '👨‍👩‍👦 Filiación', campos: [
+        { id:'padre',             label:'Nombre del padre',     req:false, tipo:'texto',   ph:'"García Roberto"' },
+        { id:'madre',             label:'Nombre de la madre',   req:false, tipo:'texto',   ph:'"López María"' },
+        { id:'est_civil',         label:'Estado civil',         req:false, tipo:'texto',   ph:'"soltero" · "casado" · "divorciado"' },
+        { id:'instruccion',       label:'Nivel de instrucción', req:false, tipo:'texto',   ph:'"primaria completa" · "secundaria incompleta"' },
+        { id:'profesion',         label:'Profesión / Ocupación',req:false, tipo:'texto',   ph:'"albañil" · "desocupado" · "comerciante"' },
+      ]},
+      { titulo: '🏠 Domicilio', campos: [
+        { id:'ultimo_domicilio',  label:'Último domicilio',     req:false, tipo:'texto',   ph:'"San Martín cuatrocientos"' },
+        { id:'ciudad',            label:'Ciudad',               req:false, tipo:'ciudad',  ph:'"Comodoro Rivadavia"' },
+        { id:'domicilios_anteriores', label:'Domicilios anteriores', req:false, tipo:'texto', ph:'"calle Belgrano doscientos, Rada Tilly"' },
+      ]},
+    ]
+  }
+
+};
+
+// ════════════════════════════════════════════════
+// PARSERS DE LENGUAJE NATURAL EN ESPAÑOL
+// ════════════════════════════════════════════════
+
+const MESES = {enero:1,febrero:2,marzo:3,abril:4,mayo:5,junio:6,
+               julio:7,agosto:8,septiembre:9,octubre:10,noviembre:11,diciembre:12};
+
+const DIAS_PAL = {'un':1,'uno':1,'dos':2,'tres':3,'cuatro':4,'cinco':5,'seis':6,
+  'siete':7,'ocho':8,'nueve':9,'diez':10,'once':11,'doce':12,'trece':13,
+  'catorce':14,'quince':15,'dieciséis':16,'dieciseis':16,'diecisiete':17,
+  'dieciocho':18,'diecinueve':19,'veinte':20,'veintiuno':21,'veintidós':22,
+  'veintidos':22,'veintitrés':23,'veintitres':23,'veinticuatro':24,
+  'veinticinco':25,'veintiséis':26,'veintiseis':26,'veintisiete':27,
+  'veintiocho':28,'veintinueve':29,'treinta':30,'treinta y uno':31};
+
+const NUMS = {'cero':0,'un':1,'uno':1,'una':1,'dos':2,'tres':3,'cuatro':4,
+  'cinco':5,'seis':6,'siete':7,'ocho':8,'nueve':9,'diez':10,'once':11,
+  'doce':12,'trece':13,'catorce':14,'quince':15,'dieciséis':16,'diecisiete':17,
+  'dieciocho':18,'diecinueve':19,'veinte':20,'veintiuno':21,'veintidós':22,
+  'veintitres':23,'veintitrés':23,'veinticuatro':24,'veinticinco':25,
+  'veintiseis':26,'veintiséis':26,'veintisiete':27,'veintiocho':28,
+  'veintinueve':29,'treinta':30,'cuarenta':40,'cincuenta':50,'sesenta':60,
+  'setenta':70,'ochenta':80,'noventa':90,'cien':100,'ciento':100,
+  'doscientos':200,'trescientos':300,'cuatrocientos':400,'quinientos':500,
+  'seiscientos':600,'setecientos':700,'ochocientos':800,'novecientos':900,
+  'mil':1000};
+
+const HORAS_PAL = {'una':1,'dos':2,'tres':3,'cuatro':4,'cinco':5,'seis':6,
+  'siete':7,'ocho':8,'nueve':9,'diez':10,'once':11,'doce':12};
+
+const CIUDAD_MAP = {
+  'komodoro':'Comodoro Rivadavia','comodoro':'Comodoro Rivadavia',
+  'rivadavia':'Comodoro Rivadavia','la rivadavia':'Comodoro Rivadavia',
+  'rada tilly':'Rada Tilly','rada':'Rada Tilly','tilly':'Rada Tilly',
+  'caleta olivia':'Caleta Olivia','caleta':'Caleta Olivia','olivia':'Caleta Olivia',
+  'puerto madryn':'Puerto Madryn','madryn':'Puerto Madryn',
+  'trelew':'Trelew','rawson':'Rawson','esquel':'Esquel',
+  'sarmiento':'Sarmiento','lago puelo':'Lago Puelo','el hoyo':'El Hoyo',
+  'puerto pirámides':'Puerto Pirámides','gaiman':'Gaiman','dolavon':'Dolavon',
+  'camarones':'Camarones','río mayo':'Río Mayo','perito moreno':'Perito Moreno'
+};
+
+function fmt(d){
+  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+}
+function p2(n){ return String(n).padStart(2,'0'); }
+function cap(s){
+  return s.trim().toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase());
+}
+
+function parseDate(t){
+  t = t.toLowerCase().trim();
+  const hoy = new Date();
+  if(/\bhoy\b/.test(t)) return fmt(hoy);
+  if(/\bayer\b/.test(t)){ const d=new Date(hoy); d.setDate(d.getDate()-1); return fmt(d); }
+  if(/\bantea(yer)?\b/.test(t)){ const d=new Date(hoy); d.setDate(d.getDate()-2); return fmt(d); }
+
+  // "el X de mes"
+  for(const [mn,mv] of Object.entries(MESES)){
+    if(!t.includes(mn)) continue;
+    // día como palabra
+    for(const [dn,dv] of Object.entries(DIAS_PAL)){
+      if(t.includes(dn)){
+        return `${hoy.getFullYear()}-${p2(mv)}-${p2(dv)}`;
+      }
+    }
+    // día como número
+    const m2=t.match(/(\d{1,2})/);
+    if(m2) return `${hoy.getFullYear()}-${p2(mv)}-${p2(parseInt(m2[1]))}`;
+  }
+
+  // DD/MM o DD/MM/YYYY
+  const m=t.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+  if(m){
+    let anio=m[3]?parseInt(m[3]):hoy.getFullYear();
+    if(anio<100) anio+=2000;
+    return `${anio}-${p2(parseInt(m[2]))}-${p2(parseInt(m[1]))}`;
+  }
+
+  return t; // no parseado
+}
+
+function parseTime(t){
+  t=t.toLowerCase().trim();
+  if(/medianoche/.test(t)) return '00:00';
+  if(/mediod[íi]a/.test(t)) return '12:00';
+
+  let h=null, min=0;
+
+  // Hora como palabra
+  for(const [hn,hv] of Object.entries(HORAS_PAL)){
+    if(new RegExp('\\b'+hn+'\\b').test(t)){ h=hv; break; }
+  }
+  // Hora como número
+  if(h===null){
+    const m=t.match(/\b(\d{1,2})(?::(\d{2}))?\b/);
+    if(m){ h=parseInt(m[1]); min=m[2]?parseInt(m[2]):0; }
+  }
+  if(h===null) return t;
+
+  if((/tarde|noche/).test(t) && h<12) h+=12;
+  if(/madrugada/.test(t) && h>=12) h-=12;
+  if(/y\s*media/.test(t)) min=30;
+  else if(/y\s*cuarto/.test(t)) min=15;
+  else if(/menos\s*cuarto/.test(t)){ h=h-1<0?23:h-1; min=45; }
+  else if(/cuarenta\s*y\s*cinco/.test(t)) min=45;
+  else if(/treinta/.test(t) && min===0) min=30;
+
+  return `${p2(h%24)}:${p2(min)}`;
+}
+
+function parseDNI(t){
+  t=t.trim();
+  // Solo dígitos (ya viene como número)
+  const d=t.replace(/[\s.]/g,'');
+  if(/^\d{7,8}$/.test(d)) return d;
+  // Extraer solo dígitos del texto
+  const nums=t.replace(/\D/g,'');
+  if(nums.length>=7&&nums.length<=8) return nums;
+  // No se pudo → devolver con advertencia
+  return t+' ⚠️VERIFICAR';
+}
+
+function parseNumero(t){
+  t=t.toLowerCase().trim();
+  // Número directo
+  const m=t.match(/[\d]+(?:[.,]\d+)?/);
+  if(m) return m[0].replace(',','.');
+  // Buscar coincidencia exacta
+  for(const [kn,kv] of Object.entries(NUMS)){
+    if(t===kn) return String(kv);
+  }
+  // Sumar palabras encontradas (heurístico simple)
+  let total=0,enc=false;
+  for(const [kn,kv] of Object.entries(NUMS)){
+    if(new RegExp('\\b'+kn+'\\b').test(t)){ total+=kv; enc=true; }
+  }
+  return enc ? String(total) : t;
+}
+
+function parseCiudad(t){
+  const tl=t.toLowerCase().trim();
+  for(const [k,v] of Object.entries(CIUDAD_MAP)){
+    if(tl.includes(k)) return v;
+  }
+  return cap(t);
+}
+
+function postProc(txt, tipo){
+  switch(tipo){
+    case 'fecha':  return parseDate(txt);
+    case 'hora':   return parseTime(txt);
+    case 'dni':    return parseDNI(txt);
+    case 'numero': return parseNumero(txt);
+    case 'ciudad': return parseCiudad(txt);
+    default:       return cap(txt);
+  }
+}
+
+function diaSemana(fechaStr){
+  try{
+    const d=new Date(fechaStr+'T12:00');
+    return ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][d.getDay()];
+  }catch{ return ''; }
+}
+
+// ════════════════════════════════════════════════
+// PARSEO DE DICTADO LIBRE (heurístico)
+// ════════════════════════════════════════════════
+function parsearLibre(texto, moduloId){
+  const t=texto.toLowerCase();
+  const r={};
+
+  // Fecha — aplica según módulo
+  const fechaCampos = {
+    delito:       ['fecha_del_hecho'],
+    control:      ['fecha_operativo'],
+    drogas:       ['fecha_intervencion'],
+    allanamiento: ['fecha_actuacion'],
+    personas:     ['fecha_nacimiento'],
+  };
+  const horaCampos = {
+    delito:       ['hora_del_hecho'],
+    control:      ['hora_inicio'],
+    drogas:       ['hora_intervencion'],
+    allanamiento: ['hora_inicio'],
+  };
+  const ciudadCampos = {
+    delito:       ['ciudad'],
+    control:      ['ciudad_ctrl'],
+    drogas:       ['ciudad'],
+    allanamiento: ['ciudad_principal'],
+    personas:     ['ciudad','lugar_nacimiento'],
+  };
+
+  // Resolver fecha
+  let fechaResuelta = null;
+  for(const [mn,mv] of Object.entries(MESES)){
+    if(!t.includes(mn)) continue;
+    for(const [dn,dv] of Object.entries(DIAS_PAL)){
+      if(t.includes(dn)){ fechaResuelta=`${new Date().getFullYear()}-${p2(mv)}-${p2(dv)}`; break; }
+    }
+    break;
+  }
+  if(!fechaResuelta && t.includes('hoy')) fechaResuelta=fmt(new Date());
+  if(!fechaResuelta && t.includes('ayer')){ const d=new Date(); d.setDate(d.getDate()-1); fechaResuelta=fmt(d); }
+  if(fechaResuelta) (fechaCampos[moduloId]||[]).forEach(c=>r[c]=fechaResuelta);
+
+  // Resolver hora
+  const horaM=t.match(/(?:a\s+las?|hora(?:s)?)\s+([\w\s]+?)(?:\s+de\s+la\s+(?:tarde|ma[ñn]ana|noche)|\s+hora(?:s)?|,|\.)/i);
+  if(horaM){ const h=parseTime(horaM[1].trim()); (horaCampos[moduloId]||[]).forEach(c=>r[c]=h); }
+
+  // Resolver ciudad
+  for(const [k,v] of Object.entries(CIUDAD_MAP)){
+    if(t.includes(k)){ (ciudadCampos[moduloId]||[]).forEach(c=>r[c]=v); break; }
+  }
+
+  // Delito (módulo delito)
+  if(moduloId==='delito'){
+    const delitos=[
+      {k:'robo a mano armada',v:'Robo a Mano Armada'},
+      {k:'robo calificado',v:'Robo Calificado'},
+      {k:'hurto',v:'Hurto'},
+      {k:'robo',v:'Robo Simple'},
+      {k:'lesiones graves',v:'Lesiones Graves'},
+      {k:'lesiones',v:'Lesiones'},
+      {k:'homicidio',v:'Homicidio'},
+      {k:'amenazas',v:'Amenazas'},
+      {k:'estafa',v:'Estafa'},
+      {k:'resistencia',v:'Resistencia a la Autoridad'},
+      {k:'violación',v:'Abuso Sexual'},
+      {k:'abuso sexual',v:'Abuso Sexual'},
+    ];
+    for(const d of delitos){ if(t.includes(d.k)){ r.delito=d.v; break; } }
+    if(t.includes('fraganti')||t.includes('in fraganti')) r.in_fraganti='SÍ';
+    if(t.includes('arma')||t.includes('pistola')||t.includes('revólver')) r.agravante='SÍ';
+    const modM=t.match(/(?:modalidad|modo)[:\s]+([\w\s]+?)(?:[,.]|$)/);
+    if(modM) r.modus_operandi=cap(modM[1].trim());
+  }
+
+  // Tipo de control
+  if(moduloId==='control'){
+    if(t.includes('alcoholemia')) r.tipo_control='Alcoholemia';
+    else if(t.includes('tránsito')||t.includes('transito')) r.tipo_control='Tránsito';
+    else if(t.includes('saturación')||t.includes('saturacion')) r.tipo_control='Saturación de Área';
+    const cantM=t.match(/(\w+)\s+efectivos?/i);
+    if(cantM) r.cant_efectivos=parseNumero(cantM[1]);
+    const movM=t.match(/(\w+)\s+móviles?/i);
+    if(movM) r.cant_moviles=parseNumero(movM[1]);
+  }
+
+  // Drogas
+  if(moduloId==='drogas'){
+    if(t.includes('allanamiento')) r.tipo_operativo='Allanamiento';
+    else if(t.includes('flagrancia')) r.tipo_operativo='Flagrancia';
+    if(t.includes('federal')) r.fuero='Federal';
+    else if(t.includes('provincial')) r.fuero='Provincial';
+    const artM=t.match(/art[íi]culo\s+([\w\s]+?)(?:[,.]|$)/i);
+    if(artM) r.articulo_ley='Art. '+artM[1].trim();
+  }
+
+  // Allanamiento / DPI
+  if(moduloId==='allanamiento'){
+    if(t.includes('allanamiento'))         r.tipo_actuacion='ALLANAMIENTO';
+    else if(t.includes('captura')||
+            t.includes('pedido'))          r.tipo_actuacion='PEDIDO DE CAPTURA';
+    else if(t.includes('operativo'))       r.tipo_actuacion='OPERATIVO';
+    // Juez
+    const judM=t.match(/(?:dr|dra|juez|jueza)\s+([\w\s]+?)(?:[,.]|$)/i);
+    if(judM) r.juez_autorizante='Dr. '+cap(judM[1].trim());
+    // Fiscal
+    const fiscM=t.match(/fiscal\s+([\w\s]+?)(?:[,.]|$)/i);
+    if(fiscM) r.fiscal_interviniente=cap(fiscM[1].trim());
+    // Caratulado (después de "caratulado:" o "causa:")
+    const caratM=t.match(/(?:caratulado|causa)[:\s]+([\w\s]+?)(?:[,.]|$)/i);
+    if(caratM) r.caratulado=caratM[1].trim().toUpperCase();
+    // Ámbito de captura
+    if(t.includes('provincial'))           r.tipo_captura='PROVINCIAL';
+    else if(t.includes('nacional'))        r.tipo_captura='NACIONAL';
+    else if(t.includes('internacional'))   r.tipo_captura='INTERNACIONAL';
+    // Contadores
+    const persM=t.match(/(\w+)\s+personas?\s+identificadas?/i);
+    if(persM) r.personas_id_count=parseNumero(persM[1]);
+    const imputM=t.match(/(\w+)\s+imputados?/i);
+    if(imputM) r.imputados_count=parseNumero(imputM[1]);
+    const vehM=t.match(/(\w+)\s+veh[íi]culos?\s+controlados?/i);
+    if(vehM) r.vehiculos_count=parseNumero(vehM[1]);
+  }
+
+  return r;
+}
+
+// ════════════════════════════════════════════════
+// AUDIO — BEEPS
+// ════════════════════════════════════════════════
+function beep(f=880,d=80,v=0.12){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=f;g.gain.setValueAtTime(v,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+d/1000);
+    o.start();o.stop(ctx.currentTime+d/1000);
+  }catch(e){}
+}
+const bOk  = ()=>{ beep(880,70,0.12); setTimeout(()=>beep(1100,55,0.08),85); };
+const bErr = ()=>{ beep(220,200,0.12); };
+const bGo  = ()=>{ beep(660,45,0.07); };
+
+// ════════════════════════════════════════════════
+// VOZ — SPEECH RECOGNITION
+// ════════════════════════════════════════════════
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const vozOk=!!SR;
+let recActivo=null, campoActivo=null;
+
+function hablar(campoId, tipo, btnEl){
+  if(!vozOk){ alert('Voz no disponible. Usá Chrome o Edge.'); return; }
+
+  // Segundo toque sobre el mismo campo → finaliza la escucha manualmente
+  if(recActivo&&campoActivo===campoId){
+    recActivo.stop(); return;
+  }
+  // Si escucha otro campo → cortarlo primero
+  if(recActivo) recActivo.stop();
+
+  const rec=new SR();
+  rec.lang='es-AR'; rec.continuous=true; rec.interimResults=true; rec.maxAlternatives=1;
+  recActivo=rec; campoActivo=campoId;
+
+  const inp=document.getElementById(campoId);
+  let accum='';
+
+  btnEl.classList.add('on'); btnEl.textContent='⏹';
+  bGo(); setStatus('Escuchando… tocá ⏹ para finalizar','listen');
+
+  rec.onresult=e=>{
+    let interim='';
+    accum='';
+    for(let i=0;i<e.results.length;i++){
+      const r=e.results[i];
+      if(r.isFinal) accum+=r[0].transcript+' ';
+      else interim+=r[0].transcript;
+    }
+    inp.value=(accum+interim).trim();
+    inp.style.opacity='.6';
+  };
+
+  rec.onend=()=>{
+    btnEl.classList.remove('on'); btnEl.textContent='🎤';
+    if(recActivo===rec){ recActivo=null; campoActivo=null; }
+    inp.style.opacity='1';
+
+    const textoFinal=accum.trim();
+    if(!textoFinal){
+      setStatus('Sin voz detectada — probá de nuevo','err'); bErr();
+      return;
+    }
+    mostrarConfirmacion(campoId, tipo, textoFinal, inp);
+  };
+
+  rec.onerror=e=>{
+    btnEl.classList.remove('on'); btnEl.textContent='🎤';
+    if(recActivo===rec){ recActivo=null; campoActivo=null; }
+    bErr();
+    const msg=e.error==='no-speech'?'Sin voz detectada':
+               e.error==='not-allowed'?'Permiso de micrófono denegado — verificá que estás en HTTPS (no abras el archivo directo)':e.error;
+    setStatus('Error: '+msg,'err');
+  };
+
+  rec.start();
+}
+
+// ════════════════════════════════════════════════
+// 3er PASO — CONFIRMACIÓN POR CAMPO
+// ════════════════════════════════════════════════
+function mostrarConfirmacion(campoId, tipo, textoCrudo, inp){
+  const proc=postProc(textoCrudo, tipo);
+  pendientes[campoId]={proc, tipo};
+
+  inp.value=proc;
+  inp.classList.add('vp');
+
+  const box=document.getElementById('c-'+campoId);
+  const txt=document.getElementById('ct-'+campoId);
+  if(box&&txt){
+    txt.textContent=proc;
+    txt.classList.toggle('warn-text', tipo==='dni');
+    if(tipo==='dni'){
+      txt.textContent='⚠️ DNI: "'+proc+'" — verificá dígito por dígito';
+    }
+    box.classList.add('show');
+  }
+  bOk();
+  setStatus('Revisá y confirmá el campo','listen');
+}
+
+function confirmarCampo(campoId){
+  const p=pendientes[campoId];
+  if(!p) return;
+  const inp=document.getElementById(campoId);
+  inp.value=p.proc;
+  inp.classList.remove('vp');
+  inp.classList.add('confirmado');
+  datos[campoId]=p.proc;
+
+  // Día semana automático
+  if(['fecha_del_hecho','fecha_operativo','fecha_intervencion','fecha_actuacion'].includes(campoId)){
+    const ds=diaSemana(p.proc);
+    if(ds){
+      const dEl=document.getElementById('dia_semana');
+      if(dEl){ dEl.value=ds; datos['dia_semana']=ds; }
+    }
+  }
+
+  const box=document.getElementById('c-'+campoId);
+  if(box) box.classList.remove('show');
+  delete pendientes[campoId];
+
+  bOk(); setStatus('✓ Campo confirmado','ok');
+  setTimeout(()=>setStatus(''),2000);
+}
+
+function reintentarCampo(campoId, tipo){
+  const inp=document.getElementById(campoId);
+  inp.value=''; inp.classList.remove('vp','confirmado');
+  delete datos[campoId];
+  const box=document.getElementById('c-'+campoId);
+  if(box) box.classList.remove('show');
+  delete pendientes[campoId];
+  const btn=document.getElementById('m-'+campoId);
+  if(btn) hablar(campoId, tipo, btn);
+}
+
+// ════════════════════════════════════════════════
+// DICTADO LIBRE
+// ════════════════════════════════════════════════
+let recLibre=null, escuchandoLibre=false;
+
+function toggleDictadoLibre(){
+  if(!vozOk){ alert('Usá Chrome o Edge para voz.'); return; }
+  const btn=document.getElementById('dl-btn');
+
+  // Segundo toque → finaliza la escucha manualmente
+  if(escuchandoLibre){
+    if(recLibre) recLibre.stop();
+    return;
+  }
+
+  if(recActivo){ recActivo.stop(); recActivo=null; }
+  descartarDictadoLibre(); // cierra confirmación previa si quedó abierta
+
+  const rec=new SR();
+  rec.lang='es-AR'; rec.continuous=true; rec.interimResults=true; rec.maxAlternatives=1;
+  recLibre=rec; escuchandoLibre=true;
+  let accum='';
+
+  btn.classList.add('dl-listening');
+  btn.querySelector('.dl-title').textContent='Escuchando… tocá para finalizar';
+  bGo(); setStatus('Dictado libre: escuchando…','listen');
+
+  rec.onresult=e=>{
+    let interim='';
+    accum='';
+    for(let i=0;i<e.results.length;i++){
+      const r=e.results[i];
+      if(r.isFinal) accum+=r[0].transcript+' ';
+      else interim+=r[0].transcript;
+    }
+    const preview=(accum+interim).trim();
+    btn.querySelector('.dl-sub').textContent=preview.substring(0,90)||'Escuchando…';
+  };
+
+  rec.onend=()=>{
+    escuchandoLibre=false; recLibre=null;
+    btn.classList.remove('dl-listening');
+    btn.querySelector('.dl-title').textContent='🎙 Dictado libre completo';
+    btn.querySelector('.dl-sub').textContent='Hablá el hecho completo y el sistema intenta completar varios campos a la vez';
+
+    const textoFinal=accum.trim();
+    if(!textoFinal){
+      setStatus('Sin voz detectada — probá de nuevo','err'); bErr();
+      return;
+    }
+    const extraido=parsearLibre(textoFinal, moduloActual);
+    mostrarConfirmacionLibre(extraido, textoFinal);
+  };
+
+  rec.onerror=e=>{
+    escuchandoLibre=false; recLibre=null;
+    btn.classList.remove('dl-listening');
+    btn.querySelector('.dl-title').textContent='🎙 Dictado libre completo';
+    bErr();
+    const msg=e.error==='not-allowed'?'Permiso de micrófono denegado — verificá que estás en HTTPS':e.error;
+    setStatus('Error: '+msg,'err');
+  };
+
+  rec.start();
+}
+
+// ════════════════════════════════════════════════
+// 3er PASO — CONFIRMACIÓN DEL DICTADO LIBRE
+// ════════════════════════════════════════════════
+function mostrarConfirmacionLibre(extraido, textoCrudo){
+  const def=MODS[moduloActual];
+  const entradas=Object.entries(extraido).filter(([k,v])=>v);
+
+  if(entradas.length===0){
+    setStatus('No se reconocieron campos — probá de nuevo o campo por campo','err');
+    bErr();
+    return;
+  }
+  extraidoPendiente=extraido;
+
+  const labelOf=id=>{
+    for(const g of def.grupos) for(const c of g.campos) if(c.id===id) return c.label;
+    return id;
+  };
+
+  let h=`<div style="font-size:11px;color:#6a86aa;margin-bottom:8px;font-style:italic">"${textoCrudo.substring(0,140)}"</div>`;
+  for(const [k,v] of entradas){
+    h+=`<div class="rev-item" style="border-bottom:1px solid #15304d">
+          <span class="rev-key">${labelOf(k)}</span>
+          <span class="rev-val pending">${v}</span>
+        </div>`;
+  }
+  document.getElementById('dl-confirm-list').innerHTML=h;
+  document.getElementById('dl-confirm').classList.add('show');
+  setStatus(`${entradas.length} campo(s) detectados — revisá y confirmá`,'listen');
+}
+
+function aplicarDictadoLibre(){
+  if(!extraidoPendiente) return;
+  const def=MODS[moduloActual];
+  let llenados=0;
+
+  for(const [k,v] of Object.entries(extraidoPendiente)){
+    const el=document.getElementById(k);
+    if(el){
+      el.value=v; el.classList.remove('vp'); el.classList.add('confirmado');
+      datos[k]=v; llenados++;
+
+      if(['fecha_del_hecho','fecha_operativo','fecha_intervencion','fecha_actuacion'].includes(k)){
+        const ds=diaSemana(v);
+        if(ds){ const dEl=document.getElementById('dia_semana');
+          if(dEl){ dEl.value=ds; datos['dia_semana']=ds; }
+        }
+      }
+      for(const g of def.grupos) for(const c of g.campos)
+        if(c.id===k&&c.tipo==='toggle') selectToggle(k,v);
+    }
+  }
+
+  document.getElementById('dl-confirm').classList.remove('show');
+  extraidoPendiente=null;
+  bOk(); setStatus(`✓ ${llenados} campo(s) aplicados`,'ok');
+  setTimeout(()=>setStatus(''),3000);
+}
+
+function descartarDictadoLibre(){
+  extraidoPendiente=null;
+  const box=document.getElementById('dl-confirm');
+  if(box) box.classList.remove('show');
+}
+
+// ════════════════════════════════════════════════
+// STATUS BAR
+// ════════════════════════════════════════════════
+function setStatus(msg,tipo=''){
+  const bar=document.getElementById('sbar');
+  const dot=document.getElementById('sdot');
+  const txt=document.getElementById('stxt');
+  if(!msg){ bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  dot.className='sdot'+(tipo?' '+tipo:'');
+  txt.textContent=msg;
+}
+
+// ════════════════════════════════════════════════
+// NAVEGACIÓN
+// ════════════════════════════════════════════════
+const SCRS=['sc0','sc1','sc2','sc3'];
+let historial=['sc0'];
+
+function mostrar(id){
+  SCRS.forEach(s=>{ const el=document.getElementById(s);
+    el.classList.toggle('active',s===id);
+  });
+  historial.push(id);
+}
+
+function atras(){
+  if(recActivo){ recActivo.stop(); recActivo=null; }
+  if(recLibre){ recLibre.stop(); recLibre=null; }
+  historial.pop();
+  const prev=historial[historial.length-1]||'sc0';
+  mostrar(prev);
+}
+
+function reiniciar(){
+  datos={};
+  pendientes={};
+  extraidoPendiente=null;
+  moduloActual=null;
+  historial=['sc0'];
+  mostrar('sc0');
+}
+
+// ════════════════════════════════════════════════
+// MÓDULO Y FORMULARIO
+// ════════════════════════════════════════════════
+let moduloActual=null;
+let datos={};
+let pendientes={};       // campos con dictado pendiente de confirmar (3er paso)
+let extraidoPendiente=null; // dictado libre pendiente de confirmar
+
+function seleccionarModulo(mod){
+  moduloActual=mod; datos={}; pendientes={}; extraidoPendiente=null;
+  const def=MODS[mod];
+  document.getElementById('frmTitulo').textContent=def.titulo;
+  document.getElementById('frmMod').textContent=def.mod;
+  renderForm(def);
+  mostrar('sc1');
+}
+
+function renderForm(def){
+  let h='';
+
+  // Botón dictado libre
+  h+=`<button id="dl-btn" class="dictado-libre-btn" onclick="toggleDictadoLibre()">
+        <span class="dl-icon">🎙️</span>
+        <div class="dl-text">
+          <div class="dl-title">Dictado libre completo</div>
+          <div class="dl-sub">Hablá el hecho completo y el sistema intenta completar varios campos a la vez</div>
+        </div>
+      </button>`;
+
+  // Panel de confirmación del dictado libre (3er paso)
+  h+=`<div class="dl-confirm-box" id="dl-confirm">
+        <div class="confirm-label">🎙️ Campos detectados — revisá antes de aplicar</div>
+        <div id="dl-confirm-list"></div>
+        <div class="confirm-actions">
+          <button class="btn-ok" onclick="aplicarDictadoLibre()">✅ Aplicar todos</button>
+          <button class="btn-retry" onclick="descartarDictadoLibre()">🔁 Descartar</button>
+        </div>
+      </div>`;
+
+  if(!vozOk){
+    h+=`<div style="background:#130000;border:1px solid #ff555540;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11.5px;color:#ff6666;line-height:1.5">
+    ⚠️ Este navegador no soporta reconocimiento de voz.<br>Usá <strong>Chrome</strong> o <strong>Edge</strong> en tu celular. Los campos se pueden completar manualmente.</div>`;
+  }
+
+  for(const g of def.grupos){
+    h+=`<div class="grp"><div class="grp-title">${g.titulo}</div>`;
+    for(const c of g.campos) h+=renderCampo(c);
+    h+=`</div>`;
+  }
+
+  document.getElementById('frmContent').innerHTML=h;
+
+  // Sync manual → datos[]
+  for(const g of def.grupos) for(const c of g.campos){
+    if(c.tipo==='toggle') continue;
+    const el=document.getElementById(c.id);
+    if(!el) continue;
+    el.addEventListener('input',()=>{ datos[c.id]=el.value; });
+    if(c.readonly) el.setAttribute('readonly','');
+  }
+}
+
+function renderCampo(c){
+  if(c.tipo==='toggle'){
+    const opts=c.opts.map(o=>
+      `<div class="tog" id="tog-${c.id}-${o}" onclick="selectToggle('${c.id}','${o}')">${o}</div>`
+    ).join('');
+    return `<div class="fld">
+      <label>${c.label}${c.req?'<span class="req"> *</span>':''}</label>
+      <div class="tog-row">${opts}</div>
+    </div>`;
+  }
+  const confirmBox = `
+      <div class="confirm-box" id="c-${c.id}">
+        <div class="confirm-label">🎙️ Reconocido — confirmá para guardar</div>
+        <div class="confirm-text" id="ct-${c.id}"></div>
+        <div class="confirm-actions">
+          <button class="btn-ok" onclick="confirmarCampo('${c.id}')">✅ Aceptar</button>
+          <button class="btn-retry" onclick="reintentarCampo('${c.id}','${c.tipo}')">🔁 Reintentar</button>
+        </div>
+      </div>`;
+  if(c.tipo==='textarea'){
+    return `<div class="fld">
+      <label>${c.label}${c.req?'<span class="req"> *</span>':''}</label>
+      <div class="fld-row">
+        <textarea id="${c.id}" placeholder="${c.ph}"></textarea>
+        <button class="mic" id="m-${c.id}" onclick="hablar('${c.id}','texto',this)">🎤</button>
+      </div>
+      <div class="hint" id="h-${c.id}"></div>
+      ${confirmBox}
+    </div>`;
+  }
+  return `<div class="fld">
+    <label>${c.label}${c.req?'<span class="req"> *</span>':''}</label>
+    <div class="fld-row">
+      <input type="text" id="${c.id}" placeholder="${c.ph}"${c.readonly?' readonly':''}>
+      <button class="mic" id="m-${c.id}" onclick="hablar('${c.id}','${c.tipo}',this)">🎤</button>
+    </div>
+    <div class="hint" id="h-${c.id}"></div>
+    ${confirmBox}
+  </div>`;
+}
+
+function selectToggle(campoId, valor){
+  datos[campoId]=valor;
+  document.querySelectorAll(`[id^="tog-${campoId}-"]`).forEach(el=>{
+    el.classList.toggle('sel', el.id===`tog-${campoId}-${valor}`);
+  });
+}
+
+// ════════════════════════════════════════════════
+// REVISIÓN
+// ════════════════════════════════════════════════
+function irReview(){
+  if(recActivo){ recActivo.stop(); recActivo=null; }
+  if(recLibre){ recLibre.stop(); recLibre=null; }
+
+  const def=MODS[moduloActual];
+
+  // Campos requeridos vacíos
+  const faltantes=[];
+  for(const g of def.grupos) for(const c of g.campos)
+    if(c.req && !datos[c.id]) faltantes.push(c.label);
+
+  // Campos con dictado pendiente de confirmar (3er paso no completado)
+  const sinConfirmar=[];
+  for(const g of def.grupos) for(const c of g.campos){
+    const el=document.getElementById(c.id);
+    if(el&&el.classList.contains('vp')) sinConfirmar.push(c.label);
+  }
+  const dlPendiente = extraidoPendiente!==null;
+
+  let h='';
+
+  if(faltantes.length>0){
+    h+=`<div class="rev-err">⚠️ Campos requeridos sin completar:<br><strong>${faltantes.join(' · ')}</strong><br><small style="opacity:.7">Podés volver a completarlos o confirmar de todas formas.</small></div>`;
+    bErr();
+  }
+  if(sinConfirmar.length>0){
+    h+=`<div class="rev-warn">🎙️ Hay dictados <strong>sin confirmar</strong> (no se guardaron):<br><strong>${sinConfirmar.join(' · ')}</strong><br><small style="opacity:.7">Volvé y tocá "✅ Aceptar" en esos campos.</small></div>`;
+  }
+  if(dlPendiente){
+    h+=`<div class="rev-warn">🎙️ Hay un dictado libre sin aplicar. Volvé y confirmá o descartá ese dictado.</div>`;
+  }
+
+  for(const g of def.grupos){
+    h+=`<div class="rev-grp"><div class="rev-grp-title">${g.titulo}</div>`;
+    for(const c of g.campos){
+      const v=datos[c.id]||'';
+      const pend=document.getElementById(c.id)?.classList.contains('vp');
+      const cls=!v?'empty':pend?'pending':'';
+      h+=`<div class="rev-item">
+        <span class="rev-key">${c.label}${c.req?'*':''}</span>
+        <span class="rev-val ${cls}">${v||(pend?'⏳ sin confirmar':'—')}</span>
+      </div>`;
+    }
+    h+=`</div>`;
+  }
+
+  document.getElementById('revContent').innerHTML=h;
+  mostrar('sc2');
+}
+
+// ════════════════════════════════════════════════
+// ÉXITO — JSON OUTPUT
+// ════════════════════════════════════════════════
+function irExito(){
+  const def=MODS[moduloActual];
+  const payload={
+    // Metadatos de integración
+    _meta:{
+      modulo: moduloActual,
+      endpoint: def.endpoint,
+      timestamp: new Date().toISOString(),
+      prototipo: true
+    },
+    // Datos capturados (campos reales del sistema)
+    ...datos
+  };
+  document.getElementById('jsonOut').textContent=JSON.stringify(payload,null,2);
+  mostrar('sc3');
+  bOk(); setTimeout(bOk,250);
+}
+
+function copiarJson(){
+  const txt=document.getElementById('jsonOut').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=event.target;
+    btn.textContent='✅ Copiado'; setTimeout(()=>btn.textContent='📋 Copiar JSON',2000);
+  }).catch(()=>alert('Copiá el texto manualmente del recuadro.'));
+}
+
+// ════════════════════════════════════════════════
+// AVISO TEMPRANO: protocolo inseguro (file://)
+// Chrome deniega el micrófono fuera de HTTPS/localhost
+// ════════════════════════════════════════════════
+(function chequearProtocolo(){
+  const esInseguro = location.protocol==='file:' ||
+                      (location.protocol==='http:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1');
+  if(esInseguro){
+    document.getElementById('protoWarn').innerHTML = `
+      <div style="background:#130000;border:1px solid #ff5555;border-radius:10px;
+                  padding:12px 13px;margin-bottom:10px;font-size:12px;color:#ff8888;line-height:1.6">
+        🚫 <strong>El micrófono va a estar bloqueado en este modo.</strong><br>
+        Estás abriendo el archivo directo (o sin HTTPS). Chrome exige una conexión
+        segura para usar el micrófono.<br><br>
+        ✅ Pedile a Beto el link <strong>https://siade.com.ar/...</strong> y abrilo desde ahí.
+      </div>`;
+  }
+})();
+</script>
+</body>
+</html>
